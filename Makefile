@@ -1,33 +1,36 @@
-# Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -g
+CXXFLAGS = -std=c++17 -Wall -Wextra -g -Iinclude
 
-# Source files
-SRCS = main.cpp \
-       Wall.cpp Door.cpp LockedDoor.cpp CrackedWall.cpp AirWall.cpp \
-       Room.cpp EntranceRoom.cpp ExitRoom.cpp PrizeRoom.cpp CombatRoom.cpp PuzzleRoom.cpp \
-       Dungeon.cpp
+SRCDIRS = src src/walls src/rooms
+OBJDIR = obj
 
-# Object files (from source files)
-OBJS = $(SRCS:.cpp=.o)
+# List of source files with relative paths
+SOURCES = $(wildcard src/*.cpp) \
+          $(wildcard src/walls/*.cpp) \
+          $(wildcard src/rooms/*.cpp)
 
-# Executable name
-TARGET = dungeon_game
+# Replace .cpp with .o in object directory
+OBJECTS = $(patsubst src/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
 
-# Default target
-all: $(TARGET)
+# Create object directory if not exists
+$(shell mkdir -p $(OBJDIR)/walls)
+$(shell mkdir -p $(OBJDIR)/rooms)
 
-# Link the object files into the final binary
-$(TARGET): $(OBJS)
+all: dungeon
+
+dungeon: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Compile .cpp to .o
-%.o: %.cpp
+$(OBJDIR)/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean object files and executable
-clean:
-	rm -f $(OBJS) $(TARGET)
+$(OBJDIR)/walls/%.o: src/walls/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Convenience for rebuilding from scratch
-rebuild: clean all
+$(OBJDIR)/rooms/%.o: src/rooms/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(OBJDIR) dungeon
+
+.PHONY: all clean
